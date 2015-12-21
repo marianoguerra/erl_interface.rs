@@ -1,0 +1,19 @@
+[package]
+
+name = "erl_interface"
+version = "0.0.1"
+authors = [ "Mariano Guerra <mariano@marianoguerra.org>" ]
+build = "build.rs"
+
+[dependencies]
+libc = "0.2.3"
+
+[lib]
+
+name = "erl_interface"
+path = "src/lib.rs"
+
+[[bin]]
+
+name = "erl_interface"
+doc = false
