@@ -17,4 +17,5 @@ Run
 
 ::
 
+    erl -sname e1 -setcookie secretcookie
     cargo run
