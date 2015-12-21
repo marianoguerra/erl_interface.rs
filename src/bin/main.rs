@@ -14,10 +14,10 @@ fn main() {
     let c_cookie = CString::new(cookie).unwrap();
     let c_node_address = CString::new(address).unwrap();
 
+    let mut emsg = erl_interface::erl_interface::ErlMessage::default();
     let mut done = false;
 
     unsafe {
-        let mut emsg = erl_interface::erl_interface::ErlMessage::default();
         erl_interface::erl_interface::erl_init(ptr::null_mut(), 0);
         if erl_interface::erl_interface::erl_connect_init(1, c_cookie.into_raw(), 0) == -1 {
             panic!("erl_connect_init == -1");
