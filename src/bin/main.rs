@@ -7,12 +7,9 @@ use std::ffi::CString;
 fn main() {
     let address = "e1@ganesha";
     let cookie = "secretcookie";
-    let erl_tick = 0;
-    let erl_error = -1;
-    let erl_reg_send = 6;
-    let buf_size = 1024;
+    const BUF_SIZE: i32 = 1024;
     // how do I put BUFSIZE here
-    let mut buf = [0u8; 1024];
+    let mut buf = [0u8; BUF_SIZE as usize];
 
     let c_cookie = CString::new(cookie).unwrap();
     let c_node_address = CString::new(address).unwrap();
@@ -35,15 +32,15 @@ fn main() {
         println!("Connected to {}", address);
 
         while !done {
-            let got = erl_interface::erl_interface::erl_receive_msg(fd, buf.as_mut_ptr(), buf_size, &mut emsg);
-            if got == erl_tick {
+            let got = erl_interface::erl_interface::erl_receive_msg(fd, buf.as_mut_ptr(), BUF_SIZE, &mut emsg);
+            if got == erl_interface::ei_constants::ERL_TICK {
                 println!("tick!");
                 /* ignore */
-            } else if got == erl_error {
+            } else if got == erl_interface::ei_constants::ERL_ERROR {
                 println!("got error {}", got);
                 done = true;
             } else {
-                if emsg._type == erl_reg_send {
+                if emsg._type == erl_interface::ei_constants::ERL_REG_SEND {
                     println!("got a send!");
                 } else {
                     println!("got something else");
