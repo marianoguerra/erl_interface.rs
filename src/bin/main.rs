@@ -1,5 +1,5 @@
-extern crate erl_interface;
 extern crate libc;
+extern crate erl_interface;
 
 use std::ptr;
 use std::ffi::CString;
