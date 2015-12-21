@@ -9,6 +9,7 @@ fn main() {
     let cookie = "secretcookie";
     let erl_tick = 0;
     let erl_error = -1;
+    let erl_reg_send = 6;
     let buf_size = 1024;
     // how do I put BUFSIZE here
     let mut buf = [0u8; 1024];
@@ -42,7 +43,11 @@ fn main() {
                 println!("got error {}", got);
                 done = true;
             } else {
-                println!("got something else");
+                if emsg._type == erl_reg_send {
+                    println!("got a send!");
+                } else {
+                    println!("got something else");
+                }
                 done = true;
             }
         }
