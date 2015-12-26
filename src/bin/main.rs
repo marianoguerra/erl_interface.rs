@@ -1,6 +1,9 @@
 extern crate libc;
 extern crate erl_interface;
 
+use erl_interface::erl_interface as eif;
+use erl_interface::ei_constants as eic;
+
 use std::ptr;
 use std::ffi::CString;
 
@@ -14,16 +17,16 @@ fn main() {
     let c_cookie = CString::new(cookie).unwrap();
     let c_node_address = CString::new(address).unwrap();
 
-    let mut emsg = erl_interface::erl_interface::ErlMessage::default();
+    let mut emsg = eif::ErlMessage::default();
     let mut done = false;
 
     unsafe {
-        erl_interface::erl_interface::erl_init(ptr::null_mut(), 0);
-        if erl_interface::erl_interface::erl_connect_init(1, c_cookie.into_raw(), 0) == -1 {
+        eif::erl_init(ptr::null_mut(), 0);
+        if eif::erl_connect_init(1, c_cookie.into_raw(), 0) == -1 {
             panic!("erl_connect_init == -1");
         }
 
-        let fd = erl_interface::erl_interface::erl_connect(c_node_address.into_raw());
+        let fd = eif::erl_connect(c_node_address.into_raw());
 
         if fd < 0 {
             panic!("erl_connect < 0");
@@ -32,15 +35,15 @@ fn main() {
         println!("Connected to {}", address);
 
         while !done {
-            let got = erl_interface::erl_interface::erl_receive_msg(fd, buf.as_mut_ptr(), BUF_SIZE, &mut emsg);
-            if got == erl_interface::ei_constants::ERL_TICK {
+            let got = eif::erl_receive_msg(fd, buf.as_mut_ptr(), BUF_SIZE, &mut emsg);
+            if got == eic::ERL_TICK {
                 println!("tick!");
                 /* ignore */
-            } else if got == erl_interface::ei_constants::ERL_ERROR {
+            } else if got == eic::ERL_ERROR {
                 println!("got error {}", got);
                 done = true;
             } else {
-                if emsg._type == erl_interface::ei_constants::ERL_REG_SEND {
+                if emsg._type == eic::ERL_REG_SEND {
                     println!("got a send!");
                 } else {
                     println!("got something else");
