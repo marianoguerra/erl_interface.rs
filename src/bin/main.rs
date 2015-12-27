@@ -4,12 +4,20 @@ extern crate erl_interface;
 use erl_interface::erl_interface as eif;
 use erl_interface::ei_constants as eic;
 
+use std::env;
 use std::ptr;
 use std::ffi::CString;
 
 fn main() {
-    let address = "e1@ganesha";
-    let cookie = "secretcookie";
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        let program = args[0].clone();
+        println!("Usage: {} <address> <cookie>", program);
+        return;
+    }
+
+    let address = args[1].clone(); //"e1@ganesha";
+    let cookie = args[2].clone(); //"secretcookie";
     const BUF_SIZE: i32 = 1024;
     // how do I put BUFSIZE here
     let mut buf = [0u8; BUF_SIZE as usize];
@@ -32,7 +40,7 @@ fn main() {
             panic!("erl_connect < 0");
         }
 
-        println!("Connected to {}", address);
+        println!("Connected to {}", args[1].clone());
 
         while !done {
             let got = eif::erl_receive_msg(fd, buf.as_mut_ptr(), BUF_SIZE, &mut emsg);

@@ -15,7 +15,9 @@ Build
 Run
 ---
 
+Change hostname for your hostname (appears on the erlang shell)
+
 ::
 
     erl -sname e1 -setcookie secretcookie
-    cargo run
+    cargo run e1@hostname secretcookie
