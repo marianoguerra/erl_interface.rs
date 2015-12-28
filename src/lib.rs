@@ -21,6 +21,7 @@ pub enum EType {
     UInt(::libc::c_uint),
     Float(::libc::c_double),
     Binary(Vec<::libc::c_uchar>),
+    Atom(String),
 }
 
 impl fmt::Display for EType {
@@ -30,6 +31,7 @@ impl fmt::Display for EType {
             &EType::UInt(val) => write!(f, "UInt({})", val),
             &EType::Float(val) => write!(f, "Float({})", val),
             &EType::Binary(ref val) => write!(f, "Binary({})", val.len()),
+            &EType::Atom(ref val) => write!(f, "Atom({})", val),
         }
     }
 }
@@ -51,6 +53,11 @@ pub unsafe fn eterm_to_etype(eterm: &mut erl_interface::ETERM) -> EType {
             let bin_size = (*eterm.uval.bval()).size as usize;
             EType::Binary(Vec::from_raw_parts((*eterm.uval.bval()).b,
                             bin_size, bin_size))
+        },
+        ei_constants::ERL_ATOM => {
+            let size = (*eterm.uval.aval()).d.lenU as usize;
+            let s = Vec::from_raw_parts((*eterm.uval.aval()).d.utf8 as *mut u8, size, size);
+            EType::Atom(String::from_utf8(s).ok().unwrap())
         },
         _ => panic!("Unknown type EType {}", tnum),
     }
