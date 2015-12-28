@@ -52,7 +52,8 @@ fn main() {
                 done = true;
             } else {
                 if emsg._type == eic::ERL_REG_SEND {
-                    println!("got a send!");
+                    let t = (*(*emsg.msg).uval.ival()).h.type_and_count;
+                    println!("got a send! {}", ((t & 0xFF000000) >> 24));
                 } else {
                     println!("got something else");
                 }

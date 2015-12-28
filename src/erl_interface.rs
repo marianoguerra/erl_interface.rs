@@ -3,7 +3,7 @@
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_Unnamed1 {
-    pub _bindgen_bitfield_1_: ::libc::c_uint,
+    pub type_and_count : ::libc::c_uint,
 }
 impl ::std::clone::Clone for Struct_Unnamed1 {
     fn clone(&self) -> Self { *self }
