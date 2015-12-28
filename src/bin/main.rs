@@ -52,8 +52,7 @@ fn main() {
                 done = true;
             } else {
                 if emsg._type == eic::ERL_REG_SEND {
-                    let t = (*(*emsg.msg).uval.ival()).h.type_and_count;
-                    let tnum = ((t & 0xFF000000) >> 24) as u8;
+                    let tnum = erl_interface::eterm_type_num(&mut *emsg.msg);
                     println!("got a send! {}", tnum);
                 } else {
                     println!("got something else");
