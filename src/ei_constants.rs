@@ -1,28 +1,28 @@
 /* erl_interface constants*/
 
-pub const ERL_COMPOUND: ::libc::c_uint = (1 << 7);
+pub const ERL_COMPOUND: u8 = (1 << 7);
 
-pub const ERL_UNDEF: ::libc::c_uint =        0;
-pub const ERL_INTEGER: ::libc::c_uint =      1;
-pub const ERL_U_INTEGER: ::libc::c_uint =    2; /* unsigned int */
-pub const ERL_ATOM: ::libc::c_uint =         3;
-pub const ERL_PID: ::libc::c_uint =          4;
-pub const ERL_PORT: ::libc::c_uint =         5;
-pub const ERL_REF: ::libc::c_uint =          6;
-pub const ERL_CONS: ::libc::c_uint =         (7 | ERL_COMPOUND);
-pub const ERL_LIST: ::libc::c_uint =         ERL_CONS;
-pub const ERL_NIL: ::libc::c_uint =          8;
-pub const ERL_EMPTY_LIST: ::libc::c_uint =   ERL_NIL;
-pub const ERL_TUPLE: ::libc::c_uint =        (9 | ERL_COMPOUND);
-pub const ERL_BINARY: ::libc::c_uint =      10;
-pub const ERL_FLOAT: ::libc::c_uint =       11;
-pub const ERL_VARIABLE: ::libc::c_uint =    (12 | ERL_COMPOUND); /* used in patterns */
-pub const ERL_SMALL_BIG: ::libc::c_uint =   13;
-pub const ERL_U_SMALL_BIG: ::libc::c_uint = 14;
-pub const ERL_FUNCTION: ::libc::c_uint =    (15 | ERL_COMPOUND);
-pub const ERL_BIG: ::libc::c_uint =         16;
-pub const ERL_LONGLONG: ::libc::c_uint =	17;
-pub const ERL_U_LONGLONG: ::libc::c_uint =	18;
+pub const ERL_UNDEF: u8 =        0;
+pub const ERL_INTEGER: u8 =      1;
+pub const ERL_U_INTEGER: u8 =    2; /* unsigned int */
+pub const ERL_ATOM: u8 =         3;
+pub const ERL_PID: u8 =          4;
+pub const ERL_PORT: u8 =         5;
+pub const ERL_REF: u8 =          6;
+pub const ERL_CONS: u8 =         (7 | ERL_COMPOUND);
+pub const ERL_LIST: u8 =         ERL_CONS;
+pub const ERL_NIL: u8 =          8;
+pub const ERL_EMPTY_LIST: u8 =   ERL_NIL;
+pub const ERL_TUPLE: u8 =        (9 | ERL_COMPOUND);
+pub const ERL_BINARY: u8 =      10;
+pub const ERL_FLOAT: u8 =       11;
+pub const ERL_VARIABLE: u8 =    (12 | ERL_COMPOUND); /* used in patterns */
+pub const ERL_SMALL_BIG: u8 =   13;
+pub const ERL_U_SMALL_BIG: u8 = 14;
+pub const ERL_FUNCTION: u8 =    (15 | ERL_COMPOUND);
+pub const ERL_BIG: u8 =         16;
+pub const ERL_LONGLONG: u8 =	17;
+pub const ERL_U_LONGLONG: u8 =	18;
 
 /* ei constants */
 pub const EIO: ::libc::c_int = 5;
