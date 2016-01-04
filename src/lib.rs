@@ -22,6 +22,8 @@ pub enum EType {
     Float(::libc::c_double),
     Binary(Vec<::libc::c_uchar>),
     Atom(String),
+    Pid { node: String, number: ::libc::c_uint,
+          serial: ::libc::c_uint, creation: ::libc::c_uchar},
 }
 
 impl fmt::Display for EType {
@@ -32,6 +34,8 @@ impl fmt::Display for EType {
             &EType::Float(val) => write!(f, "Float({})", val),
             &EType::Binary(ref val) => write!(f, "Binary({})", val.len()),
             &EType::Atom(ref val) => write!(f, "Atom({})", val),
+            &EType::Pid { ref node, number, serial, creation } =>
+                write!(f, "Pid({}, {}, {}, {})", node, number, serial, creation),
         }
     }
 }
@@ -55,10 +59,26 @@ pub unsafe fn eterm_to_etype(eterm: &mut erl_interface::ETERM) -> EType {
                             bin_size, bin_size))
         },
         ei_constants::ERL_ATOM => {
-            let size = (*eterm.uval.aval()).d.lenU as usize;
-            let s = Vec::from_raw_parts((*eterm.uval.aval()).d.utf8 as *mut u8, size, size);
-            EType::Atom(String::from_utf8(s).ok().unwrap())
+            atom_to_etype((*eterm.uval.aval()).d)
+        },
+        ei_constants::ERL_PID => {
+            let pid = *eterm.uval.pidval();
+            match atom_to_etype(pid.node) {
+                EType::Atom(node) => {
+                    EType::Pid { node: node, number: pid.number,
+                    serial: pid.serial,
+                    creation: pid.creation }
+                }
+                other =>
+                    panic!("Expected node to be atom, got {}", other)
+            }
         },
         _ => panic!("Unknown type EType {}", tnum),
     }
+}
+
+pub unsafe fn atom_to_etype(atom: erl_interface::Erl_Atom_data) -> EType {
+    let size = atom.lenU as usize;
+    let s = Vec::from_raw_parts(atom.utf8 as *mut u8, size, size);
+    EType::Atom(String::from_utf8(s).ok().unwrap())
 }

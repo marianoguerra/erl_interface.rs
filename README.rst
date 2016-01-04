@@ -21,3 +21,11 @@ Change hostname for your hostname (appears on the erlang shell)
 
     erl -sname e1 -setcookie secretcookie
     cargo run e1@hostname secretcookie
+
+In the erlang sell send something::
+
+    (e1@hostname)1> {any, c1@hostname} ! self().
+
+On the rust side you should see something like::
+
+    got a send! Pid(e1@hostname, 39, 0, 1)
