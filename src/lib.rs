@@ -24,7 +24,27 @@ pub enum EType {
     Atom(String),
     Pid { node: String, number: ::libc::c_uint,
           serial: ::libc::c_uint, creation: ::libc::c_uchar},
-    Tuple { size: ::libc::c_int, items: Vec<EType> }
+    Tuple { size: ::libc::c_int, items: Vec<EType> },
+    List  { size: ::libc::c_int, items: Vec<EType> }
+}
+
+
+fn display_seq(name: &str, f: &mut fmt::Formatter,
+               size: ::libc::c_int, items: &Vec<EType>) -> fmt::Result {
+    let _ = write!(f, "{}(size: {}, items: (", name, size);
+    let mut count = 1;
+
+    for item in items {
+        let _ = if count < size {
+            write!(f, "{}, ", item)
+        } else {
+            write!(f, "{}", item)
+        };
+
+        count += 1;
+    }
+
+    write!(f, "))")
 }
 
 impl fmt::Display for EType {
@@ -39,21 +59,11 @@ impl fmt::Display for EType {
                 write!(f, "Pid(node: {}, number: {}, serial: {}, creation: {})",
                     node, number, serial, creation),
 
+            &EType::List { size, ref items } => {
+                display_seq("List", f, size, items)
+            },
             &EType::Tuple { size, ref items } => {
-                let _ = write!(f, "Tuple(size: {}, items: (", size);
-                let mut count = 1;
-
-                for item in items {
-                    let _ = if count < size {
-                        write!(f, "{}, ", item)
-                    } else {
-                        write!(f, "{}", item)
-                    };
-
-                    count += 1;
-                }
-
-                write!(f, "))")
+                display_seq("Tuple", f, size, items)
             }
         }
     }
@@ -64,6 +74,10 @@ pub unsafe fn eterm_type_num(eterm: &mut erl_interface::ETERM) -> u8 {
     // in all types of the enum, we don't know yet if it's an int
     let t = (*eterm.uval.ival()).h.type_and_count;
     ((t & 0xFF000000) >> 24) as u8
+}
+
+pub unsafe fn is_nil(eterm: &mut erl_interface::ETERM) -> bool {
+    (eterm_type_num(eterm) == ei_constants::ERL_NIL)
 }
 
 pub unsafe fn eterm_to_etype(eterm: &mut erl_interface::ETERM) -> EType {
@@ -77,6 +91,23 @@ pub unsafe fn eterm_to_etype(eterm: &mut erl_interface::ETERM) -> EType {
             let bin_size = (*eterm.uval.bval()).size as usize;
             EType::Binary(Vec::from_raw_parts((*eterm.uval.bval()).b,
                             bin_size, bin_size))
+        },
+        ei_constants::ERL_NIL => {
+            EType::List { size: 0, items: vec!() }
+        },
+        ei_constants::ERL_LIST => {
+            let mut items: Vec<EType> = vec!();
+            let mut elist = eterm;
+            let mut size: ::libc::c_int = 0;
+
+            while !is_nil(elist) {
+                items.push(eterm_to_etype(&mut *erl_interface::erl_hd(elist)));
+                elist = &mut *erl_interface::erl_tl(elist);
+                size += 1;
+            }
+
+
+            EType::List { size: size, items: items }
         },
         ei_constants::ERL_TUPLE => {
             let size = (*eterm.uval.tval()).size;
