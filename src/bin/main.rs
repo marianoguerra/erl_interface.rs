@@ -1,6 +1,7 @@
 extern crate libc;
 extern crate erl_interface;
 
+use erl_interface::{EType};
 use erl_interface::erl_interface as eif;
 use erl_interface::ei_constants as eic;
 
@@ -52,9 +53,23 @@ fn main() {
                 done = true;
             } else {
                 if emsg._type == eic::ERL_REG_SEND {
-                    let eval = erl_interface::eterm_to_etype(&mut *emsg.msg);
-                    println!("got a send! {}", eval);
-                    println!("got! {}", erl_interface::eterm_to_etype(&mut *erl_interface::etype_to_eterm(&eval)));
+                    match erl_interface::eterm_to_etype(&mut *emsg.msg) {
+                        EType::Tuple { size: 2, items } => {
+                            match &items[0] {
+                                pid @ &EType::Pid { .. } => {
+                                    println!("got echo! sending {}", items[1]);
+                                    let epid = erl_interface::etype_to_eterm(pid);
+                                    let resp = erl_interface::etype_to_eterm(&items[1]);
+                                    eif::erl_send(fd, epid, resp);
+                                },
+                                _ =>
+                                    println!("got almost an echo!")
+                            }
+                         //erl_interface::eterm_to_etype(&mut *erl_interface::etype_to_eterm(&eval)));
+                        },
+                        etype => 
+                            println!("got a send! {}", etype)
+                    }
                 } else {
                     println!("got something else");
                 }
