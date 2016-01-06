@@ -39,12 +39,12 @@ Start the erlang node as explained above::
 Then start the rust node::
 
     cargo run e1@hostname secretcookie
-         Running `target/debug/erl_interface e1@ganesha secretcookie`
-    Connected to e1@ganesha
+         Running `target/debug/erl_interface e1@hostname secretcookie`
+    Connected to e1@hostname
 
 From the erlang shell send the message with the format explained above::
 
-    (e1@ganesha)33> {any, c1@ganesha} ! {self(), [32, 1.4, foo, {<<"asd">>, "lala"}]}.
+    (e1@hostname)33> {any, c1@hostname} ! {self(), [32, 1.4, foo, {<<"asd">>, "lala"}]}.
     {<0.39.0>,[32,1.4,foo,{<<"asd">>,"lala"}]}
 
 On the rust node you should see::
@@ -53,7 +53,7 @@ On the rust node you should see::
 
 And flushing received messages on the erlang node you should see::
 
-    (e1@ganesha)34> flush().
+    (e1@hostname)34> flush().
     Shell got [32,1.4,foo,{<<"asd">>,"lala"}]
     ok
 
