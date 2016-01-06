@@ -65,7 +65,6 @@ fn main() {
                                 _ =>
                                     println!("got almost an echo!")
                             }
-                         //erl_interface::eterm_to_etype(&mut *erl_interface::etype_to_eterm(&eval)));
                         },
                         etype => 
                             println!("got a send! {}", etype)
