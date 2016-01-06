@@ -82,6 +82,15 @@ pub unsafe fn is_nil(eterm: &mut erl_interface::ETERM) -> bool {
     (eterm_type_num(eterm) == ei_constants::ERL_NIL)
 }
 
+pub unsafe fn etypes_to_eterms(items: &Vec<EType>) -> Vec<*mut erl_interface::ETERM> {
+    let mut eterms: Vec<*mut erl_interface::ETERM> = vec!();
+    for etype in items {
+        eterms.push(etype_to_eterm(etype));
+    }
+
+    eterms
+}
+
 pub unsafe fn etype_to_eterm(etype: &EType) -> *mut erl_interface::ETERM {
     match etype {
         &EType::Int(val) => erl_interface::erl_mk_int(val),
@@ -96,12 +105,14 @@ pub unsafe fn etype_to_eterm(etype: &EType) -> *mut erl_interface::ETERM {
         &EType::Pid { ref node, number, serial, creation } => {
             erl_interface::erl_mk_pid(node.as_ptr() as *const i8, number, serial, creation)
         }
-        &EType::List { size, ref items } =>
-            panic!("don't know how to convert list to eterm, yet"),
-            // erl_interface::erl_mk_list(items.as_ptr(), size),
-        &EType::Tuple { size, ref items } =>
-            panic!("don't know how to convert tuple to eterm, yet")
-            // erl_interface::erl_mk_tuple(items.as_ptr(), size)
+        &EType::List { size, ref items } => {
+            let mut eterms = etypes_to_eterms(items);
+            erl_interface::erl_mk_list(eterms.as_mut_ptr(), size)
+        },
+        &EType::Tuple { size, ref items } => {
+            let mut eterms = etypes_to_eterms(items);
+            erl_interface::erl_mk_tuple(eterms.as_mut_ptr(), size)
+        }
     }
 }
 
