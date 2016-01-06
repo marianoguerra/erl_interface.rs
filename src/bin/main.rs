@@ -54,6 +54,7 @@ fn main() {
                 if emsg._type == eic::ERL_REG_SEND {
                     let eval = erl_interface::eterm_to_etype(&mut *emsg.msg);
                     println!("got a send! {}", eval);
+                    println!("got! {}", erl_interface::eterm_to_etype(&mut *erl_interface::etype_to_eterm(&eval)));
                 } else {
                     println!("got something else");
                 }

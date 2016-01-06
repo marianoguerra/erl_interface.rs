@@ -29,8 +29,8 @@ pub enum EType {
 }
 
 
-fn display_seq(name: &str, f: &mut fmt::Formatter,
-               size: ::libc::c_int, items: &Vec<EType>) -> fmt::Result {
+fn display_seq<T: fmt::Display>(name: &str, f: &mut fmt::Formatter,
+               size: ::libc::c_int, items: &Vec<T>) -> fmt::Result {
     let _ = write!(f, "{}(size: {}, items: (", name, size);
     let mut count = 1;
 
@@ -53,7 +53,9 @@ impl fmt::Display for EType {
             &EType::Int(val) => write!(f, "Int({})", val),
             &EType::UInt(val) => write!(f, "UInt({})", val),
             &EType::Float(val) => write!(f, "Float({})", val),
-            &EType::Binary(ref val) => write!(f, "Binary({})", val.len()),
+            &EType::Binary(ref val) => {
+                display_seq("Binary", f, val.len() as i32, val)
+            },
             &EType::Atom(ref val) => write!(f, "Atom({})", val),
             &EType::Pid { ref node, number, serial, creation } =>
                 write!(f, "Pid(node: {}, number: {}, serial: {}, creation: {})",
@@ -80,13 +82,36 @@ pub unsafe fn is_nil(eterm: &mut erl_interface::ETERM) -> bool {
     (eterm_type_num(eterm) == ei_constants::ERL_NIL)
 }
 
+pub unsafe fn etype_to_eterm(etype: &EType) -> *mut erl_interface::ETERM {
+    match etype {
+        &EType::Int(val) => erl_interface::erl_mk_int(val),
+        &EType::UInt(val) => erl_interface::erl_mk_uint(val),
+        &EType::Float(val) => erl_interface::erl_mk_float(val),
+        &EType::Binary(ref val) =>
+            erl_interface::erl_mk_binary(val.as_ptr() as *const i8,
+                                         val.len() as i32),
+        &EType::Atom(ref val) => {
+            erl_interface::erl_mk_atom(val.as_ptr() as *const i8)
+        },
+        &EType::Pid { ref node, number, serial, creation } => {
+            erl_interface::erl_mk_pid(node.as_ptr() as *const i8, number, serial, creation)
+        }
+        &EType::List { size, ref items } =>
+            panic!("don't know how to convert list to eterm, yet"),
+            // erl_interface::erl_mk_list(items.as_ptr(), size),
+        &EType::Tuple { size, ref items } =>
+            panic!("don't know how to convert tuple to eterm, yet")
+            // erl_interface::erl_mk_tuple(items.as_ptr(), size)
+    }
+}
+
 pub unsafe fn eterm_to_etype(eterm: &mut erl_interface::ETERM) -> EType {
     let tnum = eterm_type_num(eterm);
     match tnum {
         ei_constants::ERL_INTEGER => EType::Int((*eterm.uval.ival()).i),
         ei_constants::ERL_U_INTEGER => EType::UInt((*eterm.uval.uival()).u),
         ei_constants::ERL_FLOAT => EType::Float((*eterm.uval.fval()).f),
-        ei_constants::ERL_ATOM => atom_to_etype((*eterm.uval.aval()).d),
+        ei_constants::ERL_ATOM => atom_to_etype(&mut (*eterm.uval.aval()).d),
         ei_constants::ERL_BINARY => {
             let bin_size = (*eterm.uval.bval()).size as usize;
             EType::Binary(Vec::from_raw_parts((*eterm.uval.bval()).b,
@@ -122,7 +147,8 @@ pub unsafe fn eterm_to_etype(eterm: &mut erl_interface::ETERM) -> EType {
         },
         ei_constants::ERL_PID => {
             let pid = *eterm.uval.pidval();
-            match atom_to_etype(pid.node) {
+            let mut node = pid.node;
+            match atom_to_etype(&mut node) {
                 EType::Atom(node) => {
                     EType::Pid { node: node, number: pid.number,
                     serial: pid.serial,
@@ -136,8 +162,8 @@ pub unsafe fn eterm_to_etype(eterm: &mut erl_interface::ETERM) -> EType {
     }
 }
 
-pub unsafe fn atom_to_etype(atom: erl_interface::Erl_Atom_data) -> EType {
-    let size = atom.lenU as usize;
-    let s = Vec::from_raw_parts(atom.utf8 as *mut u8, size, size);
+pub unsafe fn atom_to_etype(atom: &mut erl_interface::Erl_Atom_data) -> EType {
+    let size = erl_interface::erl_atom_size_utf8(atom) as usize;
+    let s = Vec::from_raw_parts(erl_interface::erl_atom_ptr_utf8(atom) as *mut u8, size, size);
     EType::Atom(String::from_utf8(s).ok().unwrap())
 }
